@@ -136,6 +136,7 @@ export class SantriHalaqohService extends BaseResponse {
     }
   }
 
+  // Fungsi delete santri
   async deleteSantri(id: number): Promise<ResponseSuccess> {
     try {
       // Cek apakah data santri dengan ID yang diberikan ada
@@ -154,6 +155,43 @@ export class SantriHalaqohService extends BaseResponse {
     } catch (error) {
       throw new HttpException(
         'Ada Kesalahan saat menghapus data',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  async getSantriDetail(id: number): Promise<ResponseSuccess> {
+    try {
+      // Cek apakah data santri dengan ID yang diberikan ada
+      const santri = await this.santriHalaqohRepository.findOne({
+        where: { id, created_by: { id: this.req.user.id } },
+        relations: ['pengampuh', 'created_by', 'updated_by'],
+        select: {
+          id: true,
+          nama_santri: true,
+          pengampuh: {
+            id: true,
+            nama: true,
+          },
+          created_by: {
+            id: true,
+            nama: true,
+          },
+          updated_by: {
+            id: true,
+            nama: true,
+          },
+        },
+      });
+
+      if (!santri) {
+        throw new HttpException('Santri tidak ditemukan', HttpStatus.NOT_FOUND);
+      }
+
+      return this._success('Detail santri ditemukan', santri);
+    } catch (error) {
+      throw new HttpException(
+        'Ada Kesalahan saat mengambil detail santri',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
